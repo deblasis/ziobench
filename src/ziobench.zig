@@ -58,10 +58,33 @@ test "Result.usPerOp" {
     try std.testing.expectApproxEqAbs(@as(f64, 5.0), r.usPerOp(), 0.001);
 }
 
+test "Result.zero iterations" {
+    const r = Result{ .name = "test", .iterations = 0, .total_ns = 1000 };
+    try std.testing.expectEqual(@as(f64, 0), r.nsPerOp());
+    try std.testing.expectEqual(@as(f64, 0), r.opsPerSec());
+}
+
+test "Result.zero time" {
+    const r = Result{ .name = "test", .iterations = 1000, .total_ns = 0 };
+    try std.testing.expectEqual(@as(f64, 0), r.nsPerOp());
+}
+
 test "bench runs a function" {
     const result = bench("identity", struct {
         fn run() void {}
     }.run, .{ .warmup_iterations = 10, .bench_iterations = 100 });
     try std.testing.expectEqualStrings("identity", result.name);
     try std.testing.expectEqual(@as(u64, 100), result.iterations);
+}
+
+test "bench default config" {
+    const result = bench("default", struct {
+        fn run() void {}
+    }.run, .{});
+    try std.testing.expectEqual(@as(u64, 10_000), result.iterations);
+}
+
+test "Result msPerOp" {
+    const r = Result{ .name = "test", .iterations = 1000, .total_ns = 5_000_000_000 };
+    try std.testing.expectApproxEqAbs(@as(f64, 5.0), r.nsPerOp() / 1_000_000.0, 0.001);
 }
