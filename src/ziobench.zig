@@ -134,3 +134,13 @@ test "Config defaults" {
     try std.testing.expectEqual(@as(u64, 1000), c.warmup_iterations);
     try std.testing.expectEqual(@as(u64, 10000), c.bench_iterations);
 }
+
+test "Result opsPerSec zero time" {
+    const r = Result{ .name = "test", .iterations = 100, .total_ns = 0 };
+    try std.testing.expectEqual(@as(f64, 0), r.opsPerSec());
+}
+
+test "Result name preserved" {
+    const r = Result{ .name = "bench_sha256", .iterations = 1, .total_ns = 1 };
+    try std.testing.expectEqualStrings("bench_sha256", r.name);
+}
