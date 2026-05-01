@@ -113,3 +113,24 @@ test "Result name" {
     const r = Result{ .name = "my_benchmark", .iterations = 1, .total_ns = 1 };
     try std.testing.expectEqualStrings("my_benchmark", r.name);
 }
+
+test "Result nsPerOp zero iterations" {
+    const r = Result{ .name = "test", .iterations = 0, .total_ns = 1000 };
+    try std.testing.expectEqual(@as(f64, 0), r.nsPerOp());
+}
+
+test "Result opsPerSec" {
+    const r = Result{ .name = "test", .iterations = 1000, .total_ns = 1_000_000_000 };
+    try std.testing.expectEqual(@as(f64, 1000), r.opsPerSec());
+}
+
+test "Result usPerOp" {
+    const r = Result{ .name = "test", .iterations = 1, .total_ns = 1500 };
+    try std.testing.expectEqual(@as(f64, 1.5), r.usPerOp());
+}
+
+test "Config defaults" {
+    const c = Config{};
+    try std.testing.expectEqual(@as(u64, 1000), c.warmup_iterations);
+    try std.testing.expectEqual(@as(u64, 10000), c.bench_iterations);
+}
