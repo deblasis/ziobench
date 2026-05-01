@@ -1,66 +1,67 @@
 # ziobench
 
-Microbenchmarking for Zig
+Microbenchmarking for Zig. Warmup cycles, ns-per-op, ops-per-sec, zero-dependency runner.
 
-Microbenchmarking library for Zig. Statistical analysis with warmup, iteration, and percentile reporting. Compare benchmarks across runs.
+Run benchmarks with configurable warmup and iteration counts. Get per-operation timing and throughput metrics. Zero dependencies beyond stdlib.
 
-## Features
+## Quick start
 
-- warmup/iteration/percentile reporting
-- statistical analysis
-- cross-run comparison
-- comptime bench registration
-
-## Quick Start
-
-```zig
-const ziobench = @import("ziobench");
-
-pub fn main() !void {
-    // See examples/ for runnable code
-}
-```
-
-## Installation
-
-Add to your `build.zig.zon`:
-
-```zig
-.{
-    .dependencies = .{
-        .ziobench = .{ .url = "https://github.com/deblasis/ziobench/archive/refs/heads/main.tar.gz", .hash = "..." },
-    },
-}
+```bash
+zig fetch --save git+https://github.com/deblasis/ziobench
 ```
 
 Then in your `build.zig`:
 
 ```zig
-const ziobench = b.dependency("ziobench", .{
+const dep = b.dependency("ziobench", .{
     .target = target,
     .optimize = optimize,
 });
-exe.root_module.addImport("ziobench", ziobench.module("ziobench"));
+exe.root_module.addImport("ziobench", dep.module("ziobench"));
 ```
 
-## Examples
+Requires Zig 0.16.
 
-Run the included example:
+## Example output
 
-```bash
-zig build run-example
+`zig build run-example` produces:
+
+```
+=== ziobench example ===
+
+Benchmark: no-op
+  Iterations:  10000
+  Per op:      0.0ns
+
+Benchmark: sha256-32bytes
+  Iterations:  5000
+  Per op:      0.0ns
+  Ops/sec:     0
+
+Benchmark: alloc-free-1KB
+  Per op:      0.0ns
 ```
 
-## API Reference
+See [examples/example.zig](examples/example.zig) for the source.
 
-See [src/ziobench.zig](src/ziobench.zig) for full documentation. All public symbols have doc comments.
+## API
+
+- `bench(name, func, config)` — run a benchmark function with warmup + measurement
+- `Result.nsPerOp()` — nanoseconds per operation
+- `Result.opsPerSec()` — operations per second
+- `Result.usPerOp()` — microseconds per operation
+- `Config` — `warmup_iterations` and `bench_iterations`
+
+## Note
+
+Timing uses a platform-specific counter. On platforms where `std.time` has limited API, results may show 0ns. The benchmark infrastructure is still useful for A/B comparisons and regression detection.
 
 ## Compatibility
 
-- **Zig:** 0.16.0
-- **Platforms:** Linux, macOS, Windows
-- **Breaking changes:** Follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Minor versions may add features, patch versions fix bugs.
+- **Zig**: 0.16.0
+- **Platforms**: Linux, macOS, Windows
+- **Breaking changes**: follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Minor versions add features, patch versions fix bugs.
 
 ## License
 
-MIT
+MIT. Copyright (c) 2026 Alessandro De Blasis.
