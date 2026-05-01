@@ -2,9 +2,27 @@
 
 Microbenchmarking for Zig. Warmup cycles, ns-per-op, ops-per-sec, zero-dependency runner.
 
-Run benchmarks with configurable warmup and iteration counts. Get per-operation timing and throughput metrics. Zero dependencies beyond stdlib.
+## The pitch
 
-## Quick start
+Run benchmarks with configurable warmup and iteration counts. Get per-operation timing and throughput metrics.
+
+```zig
+const ziobench = @import("ziobench");
+
+// Benchmark any function — comptime name, warmup + measurement
+const result = ziobench.bench("sha256-32bytes", struct {
+    fn run() void {
+        var out: [32]u8 = undefined;
+        std.crypto.hash.sha2.Sha256.hash("input", &out, .{});
+    }
+}.run, .{ .warmup_iterations = 50, .bench_iterations = 5_000 });
+
+std.debug.print("{s}: {d:.1}ns/op, {d} ops/sec\n", .{
+    result.name, result.nsPerOp(), result.opsPerSec(),
+});
+```
+
+## Install
 
 ```bash
 zig fetch --save git+https://github.com/deblasis/ziobench
@@ -22,39 +40,12 @@ exe.root_module.addImport("ziobench", dep.module("ziobench"));
 
 Requires Zig 0.16.
 
-## Example output
-
-`zig build run-example` produces:
-
-```
-=== ziobench example ===
-
-Benchmark: no-op
-  Iterations:  10000
-  Per op:      0.0ns
-
-Benchmark: sha256-32bytes
-  Iterations:  5000
-  Per op:      0.0ns
-  Ops/sec:     0
-
-Benchmark: alloc-free-1KB
-  Per op:      0.0ns
-```
-
-See [examples/example.zig](examples/example.zig) for the source.
-
 ## API
 
-- `bench(name, func, config)` — run a benchmark function with warmup + measurement
-- `Result.nsPerOp()` — nanoseconds per operation
-- `Result.opsPerSec()` — operations per second
-- `Result.usPerOp()` — microseconds per operation
-- `Config` — `warmup_iterations` and `bench_iterations`
-
-## Note
-
-Timing uses a platform-specific counter. On platforms where `std.time` has limited API, results may show 0ns. The benchmark infrastructure is still useful for A/B comparisons and regression detection.
+- `bench(name, func, config)` — run benchmark with warmup + measurement
+- `Result.nsPerOp()` / `.usPerOp()` — timing per operation
+- `Result.opsPerSec()` — throughput
+- `Config{ .warmup_iterations, .bench_iterations }`
 
 ## Compatibility
 
