@@ -1,6 +1,6 @@
 # ziobench
 
-Microbenchmarking for Zig. Warmup cycles, ns-per-op, ops-per-sec, zero-dependency runner.
+Microbenchmarking for Zig. Warmup cycles, ns-per-op, ops-per-sec, no dependencies.
 
 ## The pitch
 
@@ -9,7 +9,7 @@ Run benchmarks with configurable warmup and iteration counts. Get per-operation 
 ```zig
 const ziobench = @import("ziobench");
 
-// Benchmark any function — comptime name, warmup + measurement
+// Benchmark any function: comptime name, warmup plus measurement
 const result = ziobench.bench("sha256-32bytes", struct {
     fn run() void {
         var out: [32]u8 = undefined;
@@ -42,9 +42,9 @@ Requires Zig 0.16.
 
 ## API
 
-- `bench(name, func, config)` — run benchmark with warmup + measurement
-- `Result.nsPerOp()` / `.usPerOp()` — timing per operation
-- `Result.opsPerSec()` — throughput
+- `bench(name, func, config)`: run a benchmark with warmup plus measurement
+- `Result.nsPerOp()` / `.usPerOp()`: timing per operation
+- `Result.opsPerSec()`: throughput
 - `Config{ .warmup_iterations, .bench_iterations }`
 
 ## Compatibility

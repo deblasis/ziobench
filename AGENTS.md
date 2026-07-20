@@ -2,7 +2,7 @@
 
 ## Overview
 
-Microbenchmarking library for Zig. Statistical analysis with warmup, iteration, and percentile reporting. Compare benchmarks across runs.
+Microbenchmarking library for Zig. Runs a function for a configurable number of warmup and measurement iterations and reports per-operation timing and throughput.
 
 ## Project Structure
 
@@ -19,7 +19,7 @@ build.zig        - Build configuration
 ```bash
 zig build test          # Run tests
 zig build run-example   # Run the example
-zig build               - Build the library
+zig build               # Build the library
 ```
 
 ## Architecture
