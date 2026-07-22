@@ -2,27 +2,39 @@
 
 const std = @import("std");
 
+/// Timing outcome of a single benchmark run.
 pub const Result = struct {
+    /// Label passed to `bench`, echoed back for reporting.
     name: []const u8,
+    /// Number of timed iterations (excludes warmup).
     iterations: u64,
+    /// Total wall-clock nanoseconds spent across the timed iterations.
     total_ns: u64,
+    /// Average nanoseconds per operation, or 0 when no iterations ran.
     pub fn nsPerOp(self: @This()) f64 {
         return if (self.iterations > 0) @as(f64, @floatFromInt(self.total_ns)) / @as(f64, @floatFromInt(self.iterations)) else 0;
     }
+    /// Throughput in operations per second, or 0 when no time elapsed.
     pub fn opsPerSec(self: @This()) f64 {
         const ns = self.nsPerOp();
         return if (ns > 0) 1_000_000_000.0 / ns else 0;
     }
+    /// Average microseconds per operation.
     pub fn usPerOp(self: @This()) f64 {
         return self.nsPerOp() / 1000.0;
     }
 };
 
+/// Tunable parameters for a benchmark run.
 pub const Config = struct {
+    /// Untimed iterations run first to warm caches and branch predictors.
     warmup_iterations: u64 = 100,
+    /// Timed iterations that contribute to the reported `Result`.
     bench_iterations: u64 = 10_000,
 };
 
+/// Runs `func` for the configured warmup then timed iterations and returns
+/// the elapsed timing as a `Result` labelled `name`.
 pub fn bench(comptime name: []const u8, comptime func: fn () void, config: Config) Result {
     var i: u64 = 0;
     while (i < config.warmup_iterations) : (i += 1) {
@@ -114,4 +126,25 @@ test "Result opsPerSec zero time" {
 test "Result name preserved" {
     const r = Result{ .name = "bench_sha256", .iterations = 1, .total_ns = 1 };
     try std.testing.expectEqualStrings("bench_sha256", r.name);
+}
+
+test "bench invokes func warmup plus bench times" {
+    const Counter = struct {
+        var calls: u64 = 0;
+        fn run() void {
+            calls += 1;
+        }
+    };
+    Counter.calls = 0;
+    const r = bench("count", Counter.run, .{ .warmup_iterations = 5, .bench_iterations = 20 });
+    try std.testing.expectEqual(@as(u64, 25), Counter.calls);
+    try std.testing.expectEqual(@as(u64, 20), r.iterations);
+}
+
+test "bench with zero iterations reports zero per-op" {
+    const r = bench("noop", struct {
+        fn run() void {}
+    }.run, .{ .warmup_iterations = 0, .bench_iterations = 0 });
+    try std.testing.expectEqual(@as(u64, 0), r.iterations);
+    try std.testing.expectEqual(@as(f64, 0), r.nsPerOp());
 }
